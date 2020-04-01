@@ -10,53 +10,101 @@ router.get('/',(req,res,next)=>{
     console.log("funciona");
 });
 
-router.post('/Nuevo',(req,res,next)=>{
-    let datos=req.body;
-    let p=new Jefe(datos);
-    p.contraseña=bcrypt.hashSync(p.contraseña,10);
-    p.save((err,nuevo)=>{
-        if(err){
-            res.status(300).json({nuevo:[],error:err,estado:'fail'});
-        }
-        if(!nuevo){
-            res.status(302).json({error:'que paso??',estado:'fail'});
-        }
-        return res.status(200).json({nuevo:nuevo,estado:'ok'});
-    });
-});
-
-router.post('/Login',(req,res,next)=>{
-    Jefe.find({nombre:req.body.nombre},(err,user)=>{
+router.post('/login',(req,res,next)=>{
+    Jefe.find({id:req.body.id},(err,user)=>{
         if(err){
             return res.status(302)
             .json({error:err,estado:'fail'});
         }
         if(user.length==0)
             return res.status(302).json({error:err,estado:'fail'});
-        console.log(req.body.contraseña,user[0].contraseña);
-        if(bcrypt.compareSync(req.body.contraseña,user[0].contraseña)){
+        console.log(req.body.contrasena,user[0].contrasena);
+        if(bcrypt.compareSync(req.body.contrasena,user[0].contrasena)){
             //crear el token
             let token=jwt.sign({usuario:user[0],
                 iat:Math.floor(Date.now() / 1000) - 30 },'shdn2io3u91289j9348h9');
-            console.log(token);
             return res.status(200).json({usuario:user[0],token:token,estado:'ok'});
         }else
             return res.status(300).json({error:'No exite el usuario',estado:'fail'});
     });    
 });
+router.get('/listar', async(req, res) => {
+    try {
+      const listaDb = await Jefe.find();
+      res.json(listaDb);
+    } catch (error) {
+      return res.status(400).json({
+        mensaje: 'Ocurrio un error',
+        error
+      })
+    }
+  });
 
-router.get('/Listar',Verificar.VerificarToken,(req,res,next)=>{        
-    Jefe.find({},(err,query)=>{
-        if(err){
-            res.status(300).json({lista:[],error:err,estado:'fail'});
+router.post('/nuevo', async(req, res) => {
+    const body = req.body;
+    body.fechaNacimiento = Date.parse(body.fechaNacimiento);
+    body.contrasena=bcrypt.hashSync(body.contrasena,10);
+    try {
+      const jefeDB = await Jefe.create(body);
+      res.status(200).json(jefeDB); 
+    } catch (error) {
+      return res.status(500).json({
+        mensaje: 'Ocurrio un error',
+        error
+      })
+    }
+  });
+
+router.get('/listar/:id', async(req, res) => {
+    const id = req.params.id;
+    try {
+      const JefeDB = await Jefe.findOne({id});
+      res.json(JefeDB);
+    } catch (error) {
+      return res.status(400).json({
+        mensaje: 'Ocurrio un error',
+        error
+      })
+    }
+  });
+
+router.delete('/eliminar/:id', async(req, res) => {
+    const _id = req.params.id;
+    try {
+        const jefeDb = await Jefe.findByIdAndDelete({_id});
+        if(!jefeDb){
+        return res.status(400).json({
+            mensaje: 'No se encontró el id indicado',
+            error
+        })
         }
-        if(!query){
-            res.status(302).json({lista:[],error:'que??',estado:'fail'});
-        }
-        return res.status(200).json({estado:1,lista:query,estado:'ok'});
-    });   
+        res.json(jefeDb);  
+    } catch (error) {
+        return res.status(400).json({
+        mensaje: 'Ocurrio un error',
+        error
+        })
+    }
 });
 
-
+router.put('/actualizar/:id', async(req, res) => {
+    const _id = req.params.id;
+    const body = req.body;
+    if(body.contrasena){
+        body.contrasena=bcrypt.hashSync(body.contrasena,10);
+    }
+    try {
+      const jefeDB = await Jefe.findByIdAndUpdate(
+        _id,
+        body,
+        {new: true});
+      res.json(jefeDB);  
+    } catch (error) {
+      return res.status(400).json({
+        mensaje: 'Ocurrio un error',
+        error
+      })
+    }
+  });
 
 module.exports = router;
