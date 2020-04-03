@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 var Schema=mongoose.Schema;
 
-var esquema= new Schema({
+var Scout= new Schema({
     direccion:{type:String,required:true},
     celular:{type:String,required:true},
     nombreEmergencia:{type:String,required:true},
@@ -16,4 +16,16 @@ var esquema= new Schema({
     progreso_plan:{type:Schema.Types.ObjectId,ref: 'Progreso'},
 });
 
-module.exports=mongoose.model('Scout',esquema);
+var esquema= new Schema({
+    id:{type:Number,required:true},
+    nombre:{type:String,required:true},
+    apellidos:{type:String,required:true},
+    fechaNacimiento:{type:Date,required:true},
+    correo:{type:String,required:true},
+    unidad:{type:Schema.Types.ObjectId,ref: 'Unidad'},
+    rol:{type:String, default: "scout"},
+    contrasena:{type:String,required:true},
+    adicional:{type:Scout, default: null}
+});
+
+module.exports = mongoose.model('Persona',esquema);
