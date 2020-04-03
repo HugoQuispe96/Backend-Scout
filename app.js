@@ -10,7 +10,9 @@ var jefe = require('./routes/api/jefe');
 var scout = require('./routes/api/scout');
 var unidad = require('./routes/api/unidad');
 var plan_adelanto = require('./routes/api/plan_adelanto');
-var especificacion_plan_adelanto = require('./routes/api/especificacion_plan_adelanto');
+var cuadro_plan_adelanto = require('./routes/api/cuadro_plan_adelanto');
+var requisito_cuadro = require('./routes/api/requisito_cuadro');
+var persona = require('./routes/api/persona');
 var app = express();
 
 // view engine setup
@@ -50,7 +52,9 @@ app.use('/jefe', jefe);
 app.use('/scout', scout);
 app.use('/unidad', unidad);
 app.use('/plan', plan_adelanto);
-app.use('/especificacion', especificacion_plan_adelanto);
+app.use('/cuadro', cuadro_plan_adelanto);
+app.use('/requisito', requisito_cuadro);
+app.use('/persona', persona);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
