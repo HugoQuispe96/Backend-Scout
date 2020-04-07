@@ -28,7 +28,7 @@ router.post('/login',(req,res,next)=>{
             return res.status(300).json({error:'No exite el usuario',estado:'fail'});
     });    
 });
-router.get('/listar', async(req, res) => {
+router.get('/listar', async(req, res) => { 
     try {
       const listaDb = await Pesona.find({'rol':{ $ne: 'scout' }});
       res.json(listaDb);

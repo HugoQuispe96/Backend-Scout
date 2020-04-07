@@ -54,7 +54,7 @@ router.post('/nuevo', Verificar.VerificarToken, async(req, res) => {
     if(req.body.unidad){
       persona.unidad=req.body.unidad;
       try {
-        const UnidadDB = await Unidad.findOne({_id:req.body.unidad});
+        const UnidadDB = await Unidad.findOne({nombre:req.body.unidad});
         const PlanDB = await Plan.findOne({_id:UnidadDB.plan_asignado});
         var Cuadros = [];
         var Requisitos = [];
@@ -86,15 +86,15 @@ router.post('/nuevo', Verificar.VerificarToken, async(req, res) => {
       persona.fechaNacimiento = Date.parse(req.body.fechaNacimiento);
     }
 
-    adicional.direccion = req.body.direccion;
-    adicional.celular = req.body.celular;
+    persona.direccion = req.body.direccion;
+    persona.celular = req.body.celular;
     adicional.nombreEmergencia = req.body.nombreEmergencia;
     adicional.celularEmergencia = req.body.celularEmergencia;
-    adicional.barrio = req.body.barrio;
-    adicional.telefono = req.body.telefono;
-    adicional.ocupacion = req.body.ocupacion;
-    adicional.estado = req.body.estado;
-    adicional.inscrito = req.body.inscrito;
+    persona.barrio = req.body.barrio;
+    persona.telefono = req.body.telefono;
+    persona.ocupacion = req.body.ocupacion;
+    persona.estado = req.body.estado;
+    persona.inscrito = req.body.inscrito;
     adicional.nombreAcudiente = req.body.nombreAcudiente;
     adicional.celularAcudiente = req.body.celularAcudiente;
     adicional.progreso_plan = id_progreso;
@@ -172,10 +172,10 @@ router.put('/actualizar/:id', Verificar.VerificarToken, async(req, res) => {
     if(req.body.celularAcudiente||req.body.nombreAcudiente||req.body.inscrito||req.body.estado||req.body.ocupacion||req.body.telefono||req.body.barrio||
     req.body.celularEmergencia||req.body.nombreEmergencia||req.body.celular||req.body.direccion){
       if(req.body.direccion){
-        adicional.direccion = req.body.direccion;
+        persona.direccion = req.body.direccion;
       }
       if(req.body.celular){
-        adicional.celular = req.body.celular;
+        persona.celular = req.body.celular;
       }
       if(req.body.nombreEmergencia){
         adicional.nombreEmergencia = req.body.nombreEmergencia;
@@ -184,19 +184,19 @@ router.put('/actualizar/:id', Verificar.VerificarToken, async(req, res) => {
         adicional.celularEmergencia = req.body.celularEmergencia;
       }
       if(req.body.barrio){
-        adicional.barrio = req.body.barrio;
+        persona.barrio = req.body.barrio;
       }
       if(req.body.telefono){
-        adicional.telefono = req.body.telefono;
+        persona.telefono = req.body.telefono;
       }
       if(req.body.ocupacion){
-        adicional.ocupacion = req.body.ocupacion;
+        persona.ocupacion = req.body.ocupacion;
       }
       if(req.body.estado){
-        adicional.estado = req.body.estado;
+        persona.estado = req.body.estado;
       }
       if(req.body.inscrito){
-        adicional.inscrito = req.body.inscrito;
+        persona.inscrito = req.body.inscrito;
       }
       if(req.body.nombreAcudiente){
         adicional.nombreAcudiente = req.body.nombreAcudiente;
