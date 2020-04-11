@@ -12,7 +12,7 @@ var bcrypt=require('bcrypt');
 08-04-1996
 
 router.get('/', async(req,res,next)=>{
-  res.json(calcularEdad("03-04-1996"));
+  res.json("Funciona");
 });
 
 router.get('/plan/:id', async(req,res,next)=>{
@@ -28,8 +28,20 @@ router.get('/plan/:id', async(req,res,next)=>{
       })
     }
 });
+router.get('/integrantes/:unidad', async(req,res,next)=>{
+  const unidad = req.params.unidad;
+  try {
+    const listaDb = await Persona.find({unidad,rol:'scout'});
+    res.json(listaDb);
+  } catch (error) {
+    return res.status(400).json({
+      mensaje: 'Ocurrio un error',
+      error
+    })
+  }
+});
 
-router.get('/listar', Verificar.VerificarToken, async(req, res) => {
+router.get('/listar', async(req, res) => {
   try {
       const listaDb = await Persona.find({'rol':'scout'});
       res.json(listaDb);
@@ -41,7 +53,7 @@ router.get('/listar', Verificar.VerificarToken, async(req, res) => {
     }
   });
 
-router.post('/nuevo', Verificar.VerificarToken, async(req, res) => {
+router.post('/nuevo', async(req, res) => {
     var persona = Object.create(Persona);
     var adicional = Object.create(Scout);
     var progreso = new Progreso();
@@ -51,10 +63,23 @@ router.post('/nuevo', Verificar.VerificarToken, async(req, res) => {
     persona.nombre= req.body.nombre;
     persona.apellidos= req.body.apellidos;
     persona.correo= req.body.correo;
-    if(req.body.unidad){
-      persona.unidad=req.body.unidad;
+    if(req.body.contrasena){
+      persona.contrasena=bcrypt.hashSync(req.body.contrasena,10);
+    }
+    if(req.body.fechaNacimiento){
+      persona.fechaNacimiento = Date.parse(req.body.fechaNacimiento);
+      persona.unidad=calcularUnidad(req.body.fechaNacimiento);
+    }
+    persona.direccion = req.body.direccion;
+    persona.celular = req.body.celular;
+    persona.barrio = req.body.barrio;
+    persona.telefono = req.body.telefono;
+    persona.ocupacion = req.body.ocupacion;
+    persona.estado = req.body.estado;
+    persona.inscrito = req.body.inscrito;
+    if(persona.unidad){
       try {
-        const UnidadDB = await Unidad.findOne({nombre:req.body.unidad});
+        const UnidadDB = await Unidad.findOne({nombre:persona.unidad});
         const PlanDB = await Plan.findOne({_id:UnidadDB.plan_asignado});
         var Cuadros = [];
         var Requisitos = [];
@@ -79,27 +104,12 @@ router.post('/nuevo', Verificar.VerificarToken, async(req, res) => {
         })
       }
     }
-    if(req.body.contrasena){
-      persona.contrasena=bcrypt.hashSync(req.body.contrasena,10);
-    }
-    if(req.body.contrasena){
-      persona.fechaNacimiento = Date.parse(req.body.fechaNacimiento);
-    }
-
-    persona.direccion = req.body.direccion;
-    persona.celular = req.body.celular;
-    adicional.nombreEmergencia = req.body.nombreEmergencia;
-    adicional.celularEmergencia = req.body.celularEmergencia;
-    persona.barrio = req.body.barrio;
-    persona.telefono = req.body.telefono;
-    persona.ocupacion = req.body.ocupacion;
-    persona.estado = req.body.estado;
-    persona.inscrito = req.body.inscrito;
     adicional.nombreAcudiente = req.body.nombreAcudiente;
     adicional.celularAcudiente = req.body.celularAcudiente;
+    adicional.nombreEmergencia = req.body.nombreEmergencia;
+    adicional.celularEmergencia = req.body.celularEmergencia;
     adicional.progreso_plan = id_progreso;
     persona.adicional = adicional;
-
     try {
       const scoutDB = await Persona.create(persona);
       res.status(200).json(scoutDB); 
@@ -111,7 +121,7 @@ router.post('/nuevo', Verificar.VerificarToken, async(req, res) => {
     }
   });
 
-router.get('/listar/:id', Verificar.VerificarToken, async(req, res) => {
+router.get('/listar/:id', async(req, res) => {
     const id = req.params.id;
     try {
       const scoutDB = await Persona.findOne({id, 'rol':'scout' });
@@ -124,7 +134,7 @@ router.get('/listar/:id', Verificar.VerificarToken, async(req, res) => {
     }
   });
 
-router.delete('/eliminar/:id', Verificar.VerificarToken, async(req, res) => {
+router.delete('/eliminar/:id', async(req, res) => {
     const _id = req.params.id;
     try {
         const scoutDB = await Persona.findByIdAndDelete({_id});
@@ -143,7 +153,7 @@ router.delete('/eliminar/:id', Verificar.VerificarToken, async(req, res) => {
     }
 });
 
-router.put('/actualizar/:id', Verificar.VerificarToken, async(req, res) => {
+router.put('/actualizar/:id', async(req, res) => {
     const _id = req.params.id;
     var persona = Object.create(Persona);
     var adicional = Object.create(Scout);
@@ -221,16 +231,32 @@ router.put('/actualizar/:id', Verificar.VerificarToken, async(req, res) => {
     }
   });
 
-function calcularEdad(fecha) {
+function calcularUnidad(fecha) {
   var hoy = new Date();
   var cumpleanos = new Date(fecha);
   var edad = hoy.getFullYear() - cumpleanos.getFullYear();
   var m = hoy.getMonth() - cumpleanos.getMonth();
+  var unidad = "";
 
   if (m < 0 || (m === 0 && hoy.getDate() < cumpleanos.getDate())) {
       edad--;
   }
 
-  return edad;
+  if(edad<7){
+    unidad="Familia";
+  }
+  else if(edad>=7 && edad<10){
+    unidad="Manada";
+  }
+  else if(edad>=10 && edad<14){
+    unidad="Tropa";
+  }
+  else if(edad>=14 && edad<16){
+    unidad="Sociedad";
+  }
+  else{
+    unidad="Clan";
+  }
+  return unidad;
 }
 module.exports = router;
